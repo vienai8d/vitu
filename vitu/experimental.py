@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 
-def create_schema(df: pd.DataFrame):
+def create_example_schema(df: pd.DataFrame):
     schema = {}
     for key, dtype in df.dtypes.items():
         if dtype in (np.int64, np.bool):

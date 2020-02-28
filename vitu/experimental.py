@@ -144,3 +144,14 @@ def read_example_tfrecord(filename, schema):
         return features
 
     return tf.data.TFRecordDataset(filename).map(deserialize_example).map(fillna)
+
+# pylint: disable=no-name-in-module,import-error
+from tensorflow.python.feature_column.feature_column_v2 import NumericColumn, EmbeddingColumn
+
+
+def is_numeric_column(column):
+    return type(column) is NumericColumn
+
+
+def is_embedding_column(column):
+    return type(column) is EmbeddingColumn

@@ -51,7 +51,7 @@ def unify_example_schema(l: dict, r: dict):
     return l, r
 
 
-def create_feature_columns(df: pd.DataFrame):
+def create_feature_columns(df: pd.DataFrame, ignore_keys=[]):
     def create_feature_column(key, dtype):
         if dtype in (np.int64, np.bool):
             return tf.feature_column.numeric_column(key, dtype=tf.int64)
@@ -74,7 +74,8 @@ def create_feature_columns(df: pd.DataFrame):
             raise ValueError(f'unexpected dtype: column={key}, dtype={dtype}')
 
     return [create_feature_column(key, dtype)
-            for key, dtype in df.dtypes.items()]
+            for key, dtype in df.dtypes.items()
+            if key not in ignore_keys]
 
 
 def write_example_tfrecord(filename, dataset, schema):

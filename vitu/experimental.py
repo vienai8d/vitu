@@ -132,4 +132,14 @@ def read_example_tfrecord(filename, schema):
     def deserialize_example(features):
         return tf.io.parse_example(features, example_deserialization)
 
-    return tf.data.TFRecordDataset(filename).map(deserialize_example)
+    def fillna(features):
+        for k, v in schema.items():
+            if v == tf.float32:
+                features[k] = tf.where(
+                    tf.math.is_nan(features[k]),
+                    tf.zeros_like(features[k]),
+                    features[k]
+                )
+        return features
+
+    return tf.data.TFRecordDataset(filename).map(deserialize_example).map(fillna)

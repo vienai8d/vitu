@@ -31,6 +31,26 @@ def create_example_schema(df: pd.DataFrame):
     return schema
 
 
+def unify_example_schema(l: dict, r: dict):
+    for key, l_dtype in l.items():
+        if key not in r:
+            continue
+        r_dtype = r.get(key)
+        if l_dtype != r_dtype:
+            if tf.string in (l_dtype, r_dtype):
+                new_dtype = tf.string
+            elif tf.float32 in (l_dtype, r_dtype):
+                new_dtype = tf.float32
+            elif tf.int64 in (l_dtype, r_dtype):
+                new_dtype = tf.int64
+            else:
+                raise ValueError(f'unexpected dtype: column={key},'
+                                 f'l_dtype={l_dtype}, r_dtype={r_dtype}')
+            l[key] = new_dtype
+            r[key] = new_dtype
+    return l, r
+
+
 def create_feature_columns(df: pd.DataFrame):
     def create_feature_column(key, dtype):
         if dtype in (np.int64, np.bool):

@@ -4,6 +4,24 @@ import numpy as np
 import math
 
 
+def fillna(df: pd.DataFrame, default_float_value=0.0,
+           default_string_value='', default_values={}) -> pd.DataFrame:
+    _df = df.copy()
+    for k, v in _df.dtypes.items():
+        if _df[k].isnull().sum() == 0:
+            continue
+        if k in default_values:
+            _default_value = default_values.get(k) 
+        elif v == 'object':
+            _default_value = default_string_value
+        elif v == 'float':
+            _default_value = default_float_value
+        else:
+            raise ValueError(f'unexpected dtype:  column={k}, dtype={v}')
+        _df[k] = _df[k].fillna(_default_value)
+    return _df
+
+
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)
     for k, v in df.dtypes.items():

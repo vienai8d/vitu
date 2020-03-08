@@ -21,7 +21,7 @@ def fillna(df: pd.DataFrame, default_float_value=0.0,
         _df[k] = _df[k].fillna(_default_value)
     return _df
 
-
+@DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)
     for k, v in df.dtypes.items():
@@ -31,7 +31,7 @@ def read_csv(filepath_or_buffer, **kwargs):
             df[k] = df[k].fillna('')
     return df
 
-
+@DeprecationWarning
 def create_example_schema(df: pd.DataFrame):
     schema = {}
     for k in df.keys():
@@ -49,6 +49,7 @@ def create_example_schema(df: pd.DataFrame):
     return schema
 
 
+@DeprecationWarning
 def unify_example_schema(l: dict, r: dict):
     for key, l_dtype in l.items():
         if key not in r:
@@ -69,6 +70,7 @@ def unify_example_schema(l: dict, r: dict):
     return l, r
 
 
+@DeprecationWarning
 def create_feature_columns(df: pd.DataFrame, ignore_keys=[]):
     def create_feature_column(key, dtype):
         if dtype in (np.int64, np.bool):
@@ -96,6 +98,7 @@ def create_feature_columns(df: pd.DataFrame, ignore_keys=[]):
             if key not in ignore_keys]
 
 
+@DeprecationWarning
 def write_example_tfrecord(filename, dataset, schema):
     if not tf.executing_eagerly():
         raise ValueError('do not disable eager execution')
@@ -142,6 +145,7 @@ def write_example_tfrecord(filename, dataset, schema):
     writer.write(serialized_features_dataset)
 
 
+@DeprecationWarning
 def read_example_tfrecord(filename, schema):
     def _create_example_deserialization(schema):
         return {k: tf.io.FixedLenFeature([], v) for k, v in  schema.items()}
@@ -167,9 +171,11 @@ def read_example_tfrecord(filename, schema):
 from tensorflow.python.feature_column.feature_column_v2 import NumericColumn, EmbeddingColumn
 
 
+@DeprecationWarning
 def is_numeric_column(column):
     return type(column) is NumericColumn
 
 
+@DeprecationWarning
 def is_embedding_column(column):
     return type(column) is EmbeddingColumn

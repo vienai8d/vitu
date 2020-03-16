@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import math
 
+class VituError(Exception):
+    pass
 
 def fillna(df: pd.DataFrame, default_float_value=0.0,
            default_string_value='', default_values={}) -> pd.DataFrame:
@@ -17,7 +19,7 @@ def fillna(df: pd.DataFrame, default_float_value=0.0,
         elif v == 'float':
             _default_value = default_float_value
         else:
-            raise ValueError(f'unexpected dtype:  column={k}, dtype={v}')
+            raise VituError(f'unexpected dtype:  column={k}, dtype={v}')
         _df[k] = _df[k].fillna(_default_value)
     return _df
 

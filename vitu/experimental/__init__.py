@@ -19,7 +19,7 @@ def fillna(df: pd.DataFrame, default_float_value=0.0,
         elif v == 'float':
             _default_value = default_float_value
         else:
-            raise VituError(f'unexpected dtype:  column={k}, dtype={v}')
+            raise VituError(f'unexpected dtype: column={k}, dtype={v}')
         _df[k] = _df[k].fillna(_default_value)
     return _df
 
@@ -47,7 +47,7 @@ def create_example_schema(df: pd.DataFrame):
         elif _dtype == np.object_:
             schema[k] = tf.string
         else:
-            raise ValueError(f'unexpected dtype: column={k}, dtype={_dtype}')
+            raise VituError(f'unexpected dtype: column={k}, dtype={_dtype}')
     return schema
 
 
@@ -65,8 +65,8 @@ def unify_example_schema(l: dict, r: dict):
             elif tf.int64 in (l_dtype, r_dtype):
                 new_dtype = tf.int64
             else:
-                raise ValueError(f'unexpected dtype: column={key},'
-                                 f'l_dtype={l_dtype}, r_dtype={r_dtype}')
+                raise VituError(f'unexpected dtype: column={key},'
+                                f'l_dtype={l_dtype}, r_dtype={r_dtype}')
             l[key] = new_dtype
             r[key] = new_dtype
     return l, r
@@ -93,7 +93,7 @@ def create_feature_columns(df: pd.DataFrame, ignore_keys=[]):
                 math.ceil(len(vocab) ** (1/4))
             )
         else:
-            raise ValueError(f'unexpected dtype: column={key}, dtype={dtype}')
+            raise VituError(f'unexpected dtype: column={key}, dtype={dtype}')
 
     return [create_feature_column(key, dtype)
             for key, dtype in df.dtypes.items()
@@ -103,7 +103,7 @@ def create_feature_columns(df: pd.DataFrame, ignore_keys=[]):
 @DeprecationWarning
 def write_example_tfrecord(filename, dataset, schema):
     if not tf.executing_eagerly():
-        raise ValueError('do not disable eager execution')
+        raise VituError('do not disable eager execution')
 
     def _bytes_feature(value):
         if isinstance(value, type(tf.constant(0))):
@@ -126,7 +126,7 @@ def write_example_tfrecord(filename, dataset, schema):
             elif v ==  tf.string:
                 ser[k] = _bytes_feature
             else:
-                raise ValueError(f'unexpected dtype: column={k}, dtype={v}')
+                raise VituError(f'unexpected dtype: column={k}, dtype={v}')
         return ser
 
     example_serialization = _create_example_serialization(schema)

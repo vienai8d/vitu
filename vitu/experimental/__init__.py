@@ -2,6 +2,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 import math
+import jsondiff
 
 class VituError(Exception):
     pass
@@ -22,6 +23,9 @@ def fillna(df: pd.DataFrame, default_float_value=0.0,
             raise VituError(f'unexpected dtype: column={k}, dtype={v}')
         _df[k] = _df[k].fillna(_default_value)
     return _df
+
+def diff_dtypes(df1: pd.DataFrame, df2: pd.DataFrame) -> dict:
+    return jsondiff.diff(df1.dtypes.to_dict(), df2.dtypes.to_dict(), syntax='symmetric')
 
 @DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):

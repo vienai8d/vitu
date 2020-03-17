@@ -27,6 +27,31 @@ def fillna(df: pd.DataFrame, default_float_value=0.0,
 def diff_dtypes(df1: pd.DataFrame, df2: pd.DataFrame) -> dict:
     return jsondiff.diff(df1.dtypes.to_dict(), df2.dtypes.to_dict(), syntax='symmetric')
 
+def sync_dtypes(df1: pd.DataFrame, df2: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    _df1 = df1.copy()
+    _df2 = df2.copy()
+    diff = diff_dtypes(_df1, _df2)
+
+    for k, dtypes in diff.items():
+        if type(k) is not str:
+            continue
+        dtype1 = dtypes[0]
+        dtype2 = dtypes[1]
+        if 'object' in dtypes:
+            if dtype1 != 'object':
+                _df1[k] = _df1[k].astype('object')
+            if dtype2 != 'object':
+                _df2[k] = _df2[k].astype('object')
+        elif 'float' in dtypes:
+            if dtype1 != 'float':
+                _df1[k] = _df1[k].astype('float')
+            if dtype2 != 'float':
+                _df2[k] = _df2[k].astype('float')
+        else:
+            raise VituError(f'unexpected dtypes:  column={k}, ' \
+                            f'dtype1={dtype1}, dtype2={dtype2}')
+    return _df1, _df2
+
 @DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)

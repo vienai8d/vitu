@@ -52,6 +52,53 @@ def sync_dtypes(df1: pd.DataFrame, df2: pd.DataFrame) -> (pd.DataFrame, pd.DataF
                             f'dtype1={dtype1}, dtype2={dtype2}')
     return _df1, _df2
 
+def write_tfrecord(filename, df):
+    if not tf.executing_eagerly():
+        raise VituError('do not disable eager execution')
+
+    def _bytes_feature(value):
+        if isinstance(value, type(tf.constant(0))):
+            value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+    def _float_feature(value):
+        return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+    def _int64_feature(value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+    def _create_example_serialization(df):
+        ser = {}
+        for k, v in df.dtypes.items():
+            if v == 'int':
+                ser[k] = _int64_feature
+            elif v ==  'float':
+                ser[k] = _float_feature
+            elif v ==  'object':
+                ser[k] = _bytes_feature
+            else:
+                raise VituError(f'unexpected dtype: column={k}, dtype={v}')
+        return ser
+
+    example_serialization = _create_example_serialization(df)
+    
+    def serialize_example(features):
+        feature = {k: example_serialization[k](v)
+                   for k, v in features.items()}
+        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+        return example_proto.SerializeToString()
+    
+    dataset = tf.data.Dataset.from_tensor_slices(dict(df))
+    
+    def generator():
+        for features in dataset:
+            yield serialize_example(features)
+
+    serialized_features_dataset = tf.data.Dataset.from_generator(
+        generator, output_types=tf.string, output_shapes=())
+    writer = tf.data.experimental.TFRecordWriter(filename)
+    writer.write(serialized_features_dataset)
+
 @DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)

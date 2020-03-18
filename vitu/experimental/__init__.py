@@ -99,6 +99,33 @@ def write_tfrecord(filename, df):
     writer = tf.data.experimental.TFRecordWriter(filename)
     writer.write(serialized_features_dataset)
 
+def create_baseline_feature_columns(df: pd.DataFrame, ignore_keys=[]) -> list:
+    def create_baseline_feature_column(key, dtype):
+        if dtype == 'int':
+            return tf.feature_column.numeric_column(key, dtype=tf.int64)
+        elif dtype == 'float':
+            return tf.feature_column.numeric_column(key, dtype=tf.float32)
+        elif dtype == 'object':
+            vocab = df[key].dropna().unique().tolist()
+            _column = tf.feature_column.categorical_column_with_vocabulary_list(
+                key,
+                df[key].dropna().unique().tolist(),
+            )
+            return tf.feature_column.embedding_column(
+                tf.feature_column.categorical_column_with_vocabulary_list(
+                    key,
+                    vocab
+                ),
+                math.ceil(len(vocab) ** (1/4))
+            )
+        else:
+            raise VituError(f'unexpected dtype: column={key}, dtype={dtype}')
+
+    return [create_baseline_feature_column(key, dtype)
+            for key, dtype in df.dtypes.items()
+            if key not in ignore_keys]
+
+
 @DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)

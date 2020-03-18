@@ -126,6 +126,15 @@ def create_baseline_feature_columns(df: pd.DataFrame, ignore_keys=[]) -> list:
             if key not in ignore_keys]
 
 
+def read_tfrecord(filename, feature_columns, label_key, label_dtype) -> tf.data.TFRecordDataset:
+    example_deserialization = tf.estimator.regressor_parse_example_spec(feature_columns, label_key, label_dtype)
+
+    def deserialize_example(features):
+        return tf.io.parse_example(features, example_deserialization)
+
+    return tf.data.TFRecordDataset(filename).map(deserialize_example)
+
+
 @DeprecationWarning
 def read_csv(filepath_or_buffer, **kwargs):
     df = pd.read_csv(filepath_or_buffer, **kwargs)
